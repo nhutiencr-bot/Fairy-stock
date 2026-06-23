@@ -1,4 +1,5 @@
-<img width="647" height="266" alt="image" src="https://github.com/user-attachments/assets/763966bf-b3f2-472a-a123-089f398d1796" /># vnstock API Reference — Nguồn data #1 cho mọi skill
+
+vnstock API Reference — Nguồn data #1 cho mọi skill
 
 `vnstock` là thư viện Python lấy data trực tiếp từ VCI/TCBS/KBS — đáng tin hơn web scraping vì:
 - Data chính thức từ nguồn HOSE (qua VCI broker).
