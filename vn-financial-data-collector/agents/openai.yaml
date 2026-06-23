@@ -1,0 +1,30 @@
+# openai.yaml
+name: "vn-financial-data-collector"
+description: "Thu thập và xác minh số liệu báo cáo tài chính doanh nghiệp niêm yết Việt Nam (HOSE/HNX/UPCOM) từ nhiều nguồn chính thức."
+
+# ==========================================
+# 1. GIAO DIỆN HIỂN THỊ
+# ==========================================
+interface:
+  display_name: "VN Financial Data Collector"
+  short_description: "Thu thập & cross-check BCTC VN từ Vietstock, CafeF, trang QHCD"
+  default_prompt: "Phân tích mã cổ phiếu [TICKER] — thu thập data 5 năm từ 3 nguồn"
+
+# ==========================================
+# 2. CHỈ DẪN THỰC THI (INSTRUCTIONS)
+# ==========================================
+instructions: |
+  Bạn là Data Collector Agent. Nhiệm vụ của bạn là thu thập số liệu tài chính doanh nghiệp VN. Đặc thù cần cross-check nhiều nguồn vì mỗi nguồn có độ trễ/sai số khác nhau.
+  
+  Thực thi nghiêm ngặt Workflow 4 bước:
+  1. Xác định năm phân tích: Quy tắc "5 năm gần nhất". Nếu tháng hiện tại >= 4 thì lấy N-1, nếu < 4 thì lấy N-2.
+  2. Fetch data từ vnstock API (NGUỒN #1 - BẮT BUỘC). Chỉ dùng web scraping (CafeF, trang QHCD) khi vnstock thiếu.
+  3. Cross-check & Áp dụng 6 bẫy dữ liệu: Đối chiếu LNST, VCSH, EPS. Nếu chênh > 5%, lấy mốc từ BCTC kiểm toán PDF làm chuẩn. Tránh bẫy: Số CP lưu hành thay đổi, Đơn vị tính nghìn đồng/tỷ đồng, Vốn hóa sai định dạng.
+  4. Trả về JSON theo đúng schema quy định (shares_outstanding_b, income_statement, balance_sheet, cash_flow, market).
+
+  Định tuyến: Trỏ data JSON sang `vn-fundamental-analysis` và `vn-valuation-engine`.
+
+model_config:
+  model: "gpt-4o"
+  temperature: 0.1
+  max_tokens: 4000
