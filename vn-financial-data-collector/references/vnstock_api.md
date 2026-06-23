@@ -104,18 +104,8 @@ by_industry = lst.symbols_by_industries()
 ## Quy hoạch nguồn: vnstock vs web
 
 ### Ưu tiên #1: vnstock API (Luôn thử trước)
+<img width="443" height="157" alt="image" src="https://github.com/user-attachments/assets/6b908315-726a-4784-b1c6-18f0598e7fb0" />
 
-| Loại data | Method vnstock | Thay thế cho web nào |
-|---|---|---|
-| Giá lịch sử | `Quote.history()` | Investing.com, Yahoo Finance |
-| BCTC (KQKD/CDKT/LCTT) | `Finance.balance_sheet`, `income_statement` | Vietstock, CafeF BCTC page |
-| Ratios (PE/PB/ROE/EV) | `Finance.ratio()` | Vietstock ratios page |
-| Vốn hóa, số CP | `Company.overview()` | Vietstock, CafeF sidebar |
-| Tin tức | `Company.news()` (50 tin) | CafeF, VnExpress search |
-| Công bố thông tin | `Company.events()` (50 sự kiện) | HOSE disclosure, VSD |
-| Cổ đông lớn | `Company.shareholders()` (source='KBS') | BCTN, trang QHCD |
-| Target price analyst | `Company.overview()['target_price']` | Báo cáo CTCK |
-| Index (VNINDEX/VN30) | `Quote(symbol='VNINDEX')` | CafeF, VNDirect |
 
 ### Ưu tiên #2: Web scraping (Chỉ dùng khi vnstock thiếu)
 
