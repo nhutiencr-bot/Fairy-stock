@@ -93,8 +93,23 @@ lst = Listing(source='VCI')
 all_symbols = lst.all_symbols() 
 by_industry = lst.symbols_by_industries()
 Sources (Nguồn cấp dữ liệu API)
-| Source | Tên | Hỗ trợ |
+ # Sources (Nguồn cấp dữ liệu API)
+
+| Source | Tên | Hỗ trợ | Ưu tiên |
+|---|---|---|---|
+| VCI | Vietcombank Securities | Quote, Finance, Company (news/events/overview), Listing | #1 — Đầy đủ nhất |
+| KBS | KBS Securities (TCBS mới) | Company (capital_history, shareholders) | #2 — Bổ sung VCI |
+| DNSE | DNSE | Quote | #3 — Backup |
+
+---
+# Quy hoạch nguồn: vnstock vs web
+
+## Ưu tiên #1: vnstock API (Luôn thử trước)
+
+| Loại data | Method vnstock | Thay thế web nào |
 |---|---|---|
-| VCI | Vietcombank Securities | Quote, Finance, Company (news/events/overview), Listing |
-| KBS | KBS Securities (TCBS mới) | Company (capital_history, shareholders) |
-| DNSE | DNSE | Quote |
+| Giá lịch sử | `Quote.history()` | Investing.com, Yahoo |
+| BCTC (KQKD/CDKT) | `Finance...` | Vietstock, CafeF |
+| Ratios | `Finance.ratio()` | Vietstock |
+| Vốn hóa, số CP | `Company.overview()` | CafeF sidebar |
+| Tin tức / Sự kiện | `Company.news()` / `events()` | CafeF / HOSE / VSD |
