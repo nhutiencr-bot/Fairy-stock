@@ -106,7 +106,8 @@ BCTC (KQKD/CDKT)	Finance...	Vietstock, CafeF
 Ratios	Finance.ratio()	Vietstock
 Vốn hóa, số CP	Company.overview()	CafeF sidebar
 Tin tức / Sự kiện	Company.news() / events()	CafeF / HOSE / VSD
-<img width="443" height="157" alt="image" src="https://github.com/user-attachments/assets/6494549c-8941-4a58-a38c-9e6633d28119" />
+<img width="443" height="157" alt="image" src="https://github.com/user-attachments/assets/d039f5f7-119d-4ef1-bc21-ba607d8d6ea1" />
+
 Ưu tiên #2: Web scraping (Chỉ khi vnstock thiếu)
 
 BCTC kiểm toán PDF chính thức → Trang QHCD DN
