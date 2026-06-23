@@ -1,4 +1,38 @@
-interface:
-  display_name: "VN News Digest"
-  short_description: "Bản tin 30 ngày + sentiment score cho CP VN"
-  default_prompt: "Tạo bản tin 30 ngày cho [TICKER]"
+# VN News Digest (Streamlit Version)
+
+**Name:** `vn-news-digest`  
+**Description:** Tự động thu thập tin tức và sự kiện doanh nghiệp trong 30 ngày gần nhất (sử dụng vnstock API), sau đó dùng AI/Logic để chấm điểm tâm lý (Sentiment Score: Positive, Neutral, Negative) nhằm hiển thị lên Dashboard Streamlit.
+
+---
+
+Thu thập tin tức từ thư viện `vnstock` và phân tích tâm lý thị trường để đưa ra góc nhìn định tính bên cạnh các con số định lượng, phù hợp chạy trực tiếp trên môi trường Streamlit.
+
+## Workflow 3 Bước (Streamlit Integration)
+
+### Bước 1: Fetch Tin tức & Sự kiện (Qua vnstock API)
+Sử dụng `vnstock.api.company.Company` để lấy 50 tin tức và sự kiện gần nhất. Lọc lại chỉ lấy dữ liệu trong biên độ 30 ngày.
+
+```python
+from vnstock.api.company import Company
+import pandas as pd
+from datetime import datetime, timedelta
+
+def get_recent_news(ticker: str, days=30):
+    c = Company(symbol=ticker, source='VCI')
+    
+    # 1. Fetch News
+    try:
+        df_news = c.news()
+        # Columns: news_title, news_short_content, public_date, news_source
+    except Exception as e:
+        df_news = pd.DataFrame()
+        
+    # 2. Fetch Events (Công bố thông tin, Cổ tức...)
+    try:
+        df_events = c.events()
+        # Columns: event_title_vi, public_date, category
+    except Exception as e:
+        df_events = pd.DataFrame()
+        
+    # TODO: Cần có logic filter theo public_date (chỉ lấy <= 30 ngày)
+    return df_news, df_events
