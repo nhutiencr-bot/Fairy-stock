@@ -1,4 +1,4 @@
-
+<img width="443" height="178" alt="image" src="https://github.com/user-attachments/assets/dcda6662-5828-4762-b197-cde67479d600" />
 vnstock API Reference — Nguồn data #1 cho mọi skill
 
 `vnstock` là thư viện Python lấy data trực tiếp từ VCI/TCBS/KBS — đáng tin hơn web scraping vì:
@@ -93,26 +93,9 @@ from vnstock.api.listing import Listing
 lst = Listing(source='VCI')
 all_symbols = lst.all_symbols() 
 by_industry = lst.symbols_by_industries()
-## Sources (Nguồn cấp dữ liệu vnstock API)
-
-| Source | Tên | Hỗ trợ | Ưu tiên |
-|---|---|---|---|
-| **VCI** | Vietcombank Securities | Quote, Finance, Company (news/events/overview), Listing | **#1** — Đầy đủ nhất |
-| **KBS** | KBS Securities (TCBS mới) | Company (capital_history, shareholders) | **#2** — Bổ sung VCI |
-| **DNSE** | DNSE | Quote | **#3** — Backup |
----
-## Quy hoạch nguồn: vnstock vs web
-
-### Ưu tiên #1: vnstock API (Luôn thử trước)
-<img width="443" height="157" alt="image" src="https://github.com/user-attachments/assets/6b908315-726a-4784-b1c6-18f0598e7fb0" />
-
-
-### Ưu tiên #2: Web scraping (Chỉ dùng khi vnstock thiếu)
-
-| Loại data | Web nguồn dự phòng | Lý do vnstock thiếu |
-|---|---|---|
-| BCTC kiểm toán PDF | Trang QHCD DN | vnstock chỉ có data, không có file PDF |
-| Báo cáo thường niên | Trang QHCD DN | Không có trong API |
-| Tin tức > 50 bài gần nhất| CafeF, VnExpress | API hiện tại chỉ trả tối đa 50 bài |
-| Lịch sử chia tách | cophieu68 (`/quote/event.php`) | vnstock events có nhưng hạn chế |
-| Tin vĩ mô ngành | VietnamBiz, VSA | Không có trong API |
+Sources (Nguồn cấp dữ liệu API)
+Source	Tên	Hỗ trợ
+VCI	Vietcombank Securities	Quote, Finance, Company (news/events/overview), Listing
+KBS	KBS Securities (TCBS mới)	Company (capital_history, shareholders)
+DNSE	DNSE	Quote
+<img width="443" height="178" alt="image" src="https://github.com/user-attachments/assets/e928e1c6-496e-44b8-8d77-966253705658" />
