@@ -1,4 +1,3 @@
-<img width="443" height="178" alt="image" src="https://github.com/user-attachments/assets/dcda6662-5828-4762-b197-cde67479d600" />
 vnstock API Reference — Nguồn data #1 cho mọi skill
 
 `vnstock` là thư viện Python lấy data trực tiếp từ VCI/TCBS/KBS — đáng tin hơn web scraping vì:
@@ -94,8 +93,4 @@ lst = Listing(source='VCI')
 all_symbols = lst.all_symbols() 
 by_industry = lst.symbols_by_industries()
 Sources (Nguồn cấp dữ liệu API)
-Source	Tên	Hỗ trợ
-VCI	Vietcombank Securities	Quote, Finance, Company (news/events/overview), Listing
-KBS	KBS Securities (TCBS mới)	Company (capital_history, shareholders)
-DNSE	DNSE	Quote
-<img width="443" height="178" alt="image" src="https://github.com/user-attachments/assets/e928e1c6-496e-44b8-8d77-966253705658" />
+<img width="443" height="178" alt="image" src="https://github.com/user-attachments/assets/dcda6662-5828-4762-b197-cde67479d600" />
