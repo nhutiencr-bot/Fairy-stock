@@ -95,16 +95,12 @@ all_symbols = lst.all_symbols()
 by_industry = lst.symbols_by_industries()
 ## Sources (Nguồn cấp dữ liệu vnstock API)
 
-## Sources (Nguồn cấp dữ liệu vnstock API)
-
 | Source | Tên | Hỗ trợ | Ưu tiên |
 |---|---|---|---|
-| **VCI** | Vietcombank Securities | Quote, Finance, Company (news/events), Listing | **#1** — Đầy đủ nhất |
+| **VCI** | Vietcombank Securities | Quote, Finance, Company (news/events/overview), Listing | **#1** — Đầy đủ nhất |
 | **KBS** | KBS Securities (TCBS mới) | Company (capital_history, shareholders) | **#2** — Bổ sung VCI |
 | **DNSE** | DNSE | Quote | **#3** — Backup |
-
 ---
-
 ## Quy hoạch nguồn: vnstock vs web
 
 ### Ưu tiên #1: vnstock API (Luôn thử trước)
