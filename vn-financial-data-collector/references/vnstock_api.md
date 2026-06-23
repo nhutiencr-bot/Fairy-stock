@@ -93,51 +93,37 @@ from vnstock.api.listing import Listing
 lst = Listing(source='VCI')
 all_symbols = lst.all_symbols() 
 by_industry = lst.symbols_by_industries()
-Source	Tên	Hỗ trợ	Ưu tiên
-VCI	Vietcombank Securities	Quote, Finance, Company (news/events/overview), Listing	#1 — Đầy đủ nhất
-KBS	KBS Securities (TCBS mới)	Company (capital_history, shareholders)	#2 — Bổ sung VCI
-DNSE	DNSE	Quote	#3 — Backup
-<img width="647" height="266" alt="image" src="https://github.com/user-attachments/assets/11f2a8e9-888b-416a-8ce6-99976df3c105" />
-Quy hoạch nguồn: vnstock vs web
-Ưu tiên #1: vnstock API (Luôn thử trước)
-Loại data	Method vnstock	Thay thế web nào
-Giá lịch sử	Quote.history()	Investing.com, Yahoo
-BCTC (KQKD/CDKT)	Finance...	Vietstock, CafeF
-Ratios	Finance.ratio()	Vietstock
-Vốn hóa, số CP	Company.overview()	CafeF sidebar
-Tin tức / Sự kiện	Company.news() / events()	CafeF / HOSE / VSD
-<img width="443" height="157" alt="image" src="https://github.com/user-attachments/assets/d039f5f7-119d-4ef1-bc21-ba607d8d6ea1" />
+## Sources (Nguồn cấp dữ liệu vnstock API)
 
-Ưu tiên #2: Web scraping (Chỉ khi vnstock thiếu)
+| Source | Tên | Hỗ trợ | Ưu tiên |
+|---|---|---|---|
+| **VCI** | Vietcombank Securities | Quote, Finance, Company (news/events/overview), Listing | **#1** — Đầy đủ nhất |
+| **KBS** | KBS Securities (TCBS mới) | Company (capital_history, shareholders) | **#2** — Bổ sung VCI |
+| **DNSE** | DNSE | Quote | **#3** — Backup |
 
-BCTC kiểm toán PDF chính thức → Trang QHCD DN
+---
+## Quy hoạch nguồn: vnstock vs web
 
-Lịch sử chia tách chi tiết → cophieu68 (/quote/event.php)
-from vnstock.api.quote import Quote
-from vnstock.api.financial import Finance
-from vnstock.api.company import Company
+### Ưu tiên #1: vnstock API (Luôn thử trước)
 
-ticker = 'HPG'
-source = 'VCI'
+| Loại data | Method vnstock | Thay thế cho web nào |
+|---|---|---|
+| Giá lịch sử | `Quote.history()` | Investing.com, Yahoo Finance |
+| BCTC (KQKD/CDKT/LCTT) | `Finance.balance_sheet`, `income_statement`, `cash_flow` | Vietstock, CafeF BCTC page |
+| Ratios (PE/PB/ROE/EV-EBITDA) | `Finance.ratio()` | Vietstock ratios page |
+| Vốn hóa, số CP | `Company.overview()` | Vietstock, CafeF sidebar |
+| Tin tức | `Company.news()` (50 tin) | CafeF, VnExpress search |
+| Công bố thông tin | `Company.events()` (50 sự kiện) | HOSE disclosure, VSD |
+| Cổ đông lớn | `Company.shareholders()` (Dùng source='KBS') | BCTN, trang QHCD |
+| Target price analyst | `Company.overview()['target_price']` | Báo cáo CTCK |
+| Index (VNINDEX/VN30) | `Quote(symbol='VNINDEX')` | CafeF, VNDirect |
 
-# 1. Giá 52 tuần
-q = Quote(symbol=ticker, source=source)
-prices = q.history(start='2025-06-22', end='2026-06-21', interval='1W').dropna(subset=['close'])
+### Ưu tiên #2: Web scraping (Chỉ dùng khi vnstock thiếu)
 
-# 2. BCTC + Ratios
-f = Finance(symbol=ticker, source=source)
-income = f.income_statement()
-balance = f.balance_sheet()
-cashflow = f.cash_flow()
-ratios = f.ratio()
-
-# 3. Info + News + Events
-c = Company(symbol=ticker, source=source)
-overview = c.overview()
-news = c.news()
-events = c.events()
-
-print(f"=== {ticker} DATA SUMMARY ===")
-print(f"Giá hiện tại: {int(overview['current_price'].iloc[0]):,} đ")
-print(f"Vốn hóa: {overview['market_cap'].iloc[0]/1e9:,.0f} tỷ VNĐ")
-print(f"Số CP: {overview['issue_share'].iloc[0]/1e9:.2f} tỷ")
+| Loại data | Web nguồn dự phòng | Lý do vnstock thiếu |
+|---|---|---|
+| BCTC kiểm toán PDF chính thức | Trang QHCD DN | vnstock chỉ có data, không có file PDF |
+| Báo cáo thường niên | Trang QHCD DN | Không có trong API |
+| Tin tức > 50 bài gần nhất | CafeF, VnExpress | API hiện tại chỉ trả tối đa 50 bài |
+| Lịch sử chia tách chi tiết | cophieu68 (`/quote/event.php`) | vnstock events có nhưng hạn chế |
+| Tin vĩ mô ngành | VietnamBiz, VSA | Không có trong API |
