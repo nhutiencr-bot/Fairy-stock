@@ -93,4 +93,8 @@ lst = Listing(source='VCI')
 all_symbols = lst.all_symbols() 
 by_industry = lst.symbols_by_industries()
 Sources (Nguồn cấp dữ liệu API)
-<img width="443" height="178" alt="image" src="https://github.com/user-attachments/assets/dcda6662-5828-4762-b197-cde67479d600" />
+| Source | Tên | Hỗ trợ |
+|---|---|---|
+| VCI | Vietcombank Securities | Quote, Finance, Company (news/events/overview), Listing |
+| KBS | KBS Securities (TCBS mới) | Company (capital_history, shareholders) |
+| DNSE | DNSE | Quote |
