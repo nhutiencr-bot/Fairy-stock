@@ -95,13 +95,16 @@ all_symbols = lst.all_symbols()
 by_industry = lst.symbols_by_industries()
 ## Sources (Nguồn cấp dữ liệu vnstock API)
 
+## Sources (Nguồn cấp dữ liệu vnstock API)
+
 | Source | Tên | Hỗ trợ | Ưu tiên |
 |---|---|---|---|
-| **VCI** | Vietcombank Securities | Quote, Finance, Company (news/events/overview), Listing | **#1** — Đầy đủ nhất |
+| **VCI** | Vietcombank Securities | Quote, Finance, Company (news/events), Listing | **#1** — Đầy đủ nhất |
 | **KBS** | KBS Securities (TCBS mới) | Company (capital_history, shareholders) | **#2** — Bổ sung VCI |
 | **DNSE** | DNSE | Quote | **#3** — Backup |
 
 ---
+
 ## Quy hoạch nguồn: vnstock vs web
 
 ### Ưu tiên #1: vnstock API (Luôn thử trước)
@@ -109,12 +112,12 @@ by_industry = lst.symbols_by_industries()
 | Loại data | Method vnstock | Thay thế cho web nào |
 |---|---|---|
 | Giá lịch sử | `Quote.history()` | Investing.com, Yahoo Finance |
-| BCTC (KQKD/CDKT/LCTT) | `Finance.balance_sheet`, `income_statement`, `cash_flow` | Vietstock, CafeF BCTC page |
-| Ratios (PE/PB/ROE/EV-EBITDA) | `Finance.ratio()` | Vietstock ratios page |
+| BCTC (KQKD/CDKT/LCTT) | `Finance.balance_sheet`, `income_statement` | Vietstock, CafeF BCTC page |
+| Ratios (PE/PB/ROE/EV) | `Finance.ratio()` | Vietstock ratios page |
 | Vốn hóa, số CP | `Company.overview()` | Vietstock, CafeF sidebar |
 | Tin tức | `Company.news()` (50 tin) | CafeF, VnExpress search |
 | Công bố thông tin | `Company.events()` (50 sự kiện) | HOSE disclosure, VSD |
-| Cổ đông lớn | `Company.shareholders()` (Dùng source='KBS') | BCTN, trang QHCD |
+| Cổ đông lớn | `Company.shareholders()` (source='KBS') | BCTN, trang QHCD |
 | Target price analyst | `Company.overview()['target_price']` | Báo cáo CTCK |
 | Index (VNINDEX/VN30) | `Quote(symbol='VNINDEX')` | CafeF, VNDirect |
 
@@ -122,8 +125,8 @@ by_industry = lst.symbols_by_industries()
 
 | Loại data | Web nguồn dự phòng | Lý do vnstock thiếu |
 |---|---|---|
-| BCTC kiểm toán PDF chính thức | Trang QHCD DN | vnstock chỉ có data, không có file PDF |
+| BCTC kiểm toán PDF | Trang QHCD DN | vnstock chỉ có data, không có file PDF |
 | Báo cáo thường niên | Trang QHCD DN | Không có trong API |
-| Tin tức > 50 bài gần nhất | CafeF, VnExpress | API hiện tại chỉ trả tối đa 50 bài |
-| Lịch sử chia tách chi tiết | cophieu68 (`/quote/event.php`) | vnstock events có nhưng hạn chế |
+| Tin tức > 50 bài gần nhất| CafeF, VnExpress | API hiện tại chỉ trả tối đa 50 bài |
+| Lịch sử chia tách | cophieu68 (`/quote/event.php`) | vnstock events có nhưng hạn chế |
 | Tin vĩ mô ngành | VietnamBiz, VSA | Không có trong API |
