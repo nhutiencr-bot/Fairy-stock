@@ -1,11 +1,8 @@
 ---
-title: Tiên Nhu Stock
-emoji: 📈
-colorFrom: purple
-colorTo: pink
+title: Tiennhu Stock
+emoji: 📊
+colorFrom: blue
+colorTo: green
 sdk: static
 pinned: false
 ---
-
-# Dashboard Phân tích Cổ phiếu Tiên Nhu
-Đây là kho chứa mã nguồn cho ứng dụng.
