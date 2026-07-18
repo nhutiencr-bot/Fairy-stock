@@ -156,7 +156,15 @@ def get_stock(ticker: str, source: str = "VCI"):
                 vcsh_arr.append(float((eq_row.get(col, 0) or 0) if eq_row is not None and col else 0) / 1e9)
 
         # BVPS tự tính
-        issue_share = float(overview.get('issue_share', overview.get('shares_outstanding', 1)) or 1)
+        def _safe_val(v, default=1):
+            """Extract scalar from pandas Series or return as-is."""
+            if v is None:
+                return default
+            if hasattr(v, 'iloc'):
+                return v.iloc[0] if len(v) > 0 else default
+            return v
+        _iv = _safe_val(overview.get('issue_share')) or _safe_val(overview.get('shares_outstanding')) or 1
+        issue_share = float(_iv)
         bvps_arr = [round(v * 1e9 / (issue_share * 1e6)) if issue_share else 0 for v in vcsh_arr]
 
         # ROE, ROS, ROA
@@ -179,11 +187,11 @@ def get_stock(ticker: str, source: str = "VCI"):
 
         result = {
             "ticker": ticker,
-            "name": overview.get('organ_name', overview.get('company_name', ticker)),
-            "exchange": overview.get('exchange', ''),
-            "sector": overview.get('industry_name', overview.get('sector', '')),
+            "name": str(_safe_val(overview.get('organ_name')) or _safe_val(overview.get('company_name')) or ticker),
+            "exchange": str(_safe_val(overview.get('exchange')) or ''),
+            "sector": str(_safe_val(overview.get('industry_name')) or _safe_val(overview.get('sector')) or ''),
             "price_current": price_current,
-            "market_cap": float(overview.get('market_cap', 0)),
+            "market_cap": float(_safe_val(overview.get('market_cap')) or 0),
             "shares_outstanding": issue_share,
             "data_years": data_years,
             "revenue": [round(v, 1) for v in revenue],
