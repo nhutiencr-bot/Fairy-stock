@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cô Tiên Stock — Phân Tích Chứng Khoán VN</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0b0f1a;
+  --bg2: #111827;
+  --bg3: #1a2236;
+  --card: #141c2e;
+  --border: #1f2d45;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --green: #22c55e;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --soft: #94a3b8;
+  --gold: #fbbf24;
+  --font: 'Segoe UI', system-ui, sans-serif;
+  --mono: 'Courier New', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+/* HEADER */
+.header {
+  background: linear-gradient(135deg, #0b0f1a 0%, #0f172a 50%, #0b1929 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  position: sticky; top: 0; z-index: 100;
+}
+.header-inner {
+  max-width: 1400px; margin: 0 auto;
+  display: flex; align-items: center; gap: 24px;
+  height: 60px;
+}
+.logo {
+  font-size: 20px; font-weight: 700; color: var(--accent);
+  letter-spacing: -0.5px; white-space: nowrap;
+}
+.logo span { color: var(--gold); }
+
+/* SEARCH BOX */
+.search-wrap { position: relative; flex: 1; max-width: 400px; }
+.search-wrap input {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 9px 16px 9px 40px;
+  color: var(--text); font-size: 14px; outline: none;
+  transition: border-color .2s;
+}
+.search-wrap input:focus { border-color: var(--accent); }
+.search-wrap input::placeholder { color: var(--muted); }
+.search-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); font-size: 16px;
+}
+.autocomplete {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  max-height: 280px; overflow-y: auto; z-index: 200; display: none;
+}
+.autocomplete.show { display: block; }
+.ac-item {
+  padding: 10px 16px; cursor: pointer; display: flex;
+  align-items: center; gap: 12px; border-bottom: 1px solid var(--border);
+  transition: background .15s;
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover { background: var(--bg3); }
+.ac-ticker { font-weight: 700; font-size: 13px; color: var(--accent); min-width: 44px; }
+.ac-name { font-size: 12px; color: var(--soft); }
+.ac-exchange { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+.analyze-btn {
+  background: var(--accent); color: #0b0f1a;
+  border: none; border-radius: 10px; padding: 9px 20px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: opacity .2s; white-space: nowrap;
+}
+.analyze-btn:hover { opacity: .85; }
+
+/* MAIN */
+.main { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+/* TICKER HERO */
+.ticker-hero {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  padding: 24px 28px; margin-bottom: 24px; display: none;
+}
+.ticker-hero.show { display: block; }
+.ticker-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.ticker-name h1 { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+.ticker-name h1 span { color: var(--accent); }
+.ticker-name p { font-size: 13px; color: var(--soft); margin-top: 4px; }
+.ticker-price { text-align: right; }
+.price-val { font-size: 32px; font-weight: 800; font-family: var(--mono); color: var(--green); }
+.price-chg { font-size: 14px; font-weight: 600; margin-top: 4px; }
+.price-chg.pos { color: var(--green); }
+.price-chg.neg { color: var(--red); }
+.ticker-stats {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);
+}
+.stat-item { }
+.stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.stat-val { font-size: 15px; font-weight: 600; margin-top: 3px; color: var(--text); }
+.stat-val.green { color: var(--green); }
+.stat-val.red { color: var(--red); }
+.stat-val.amber { color: var(--amber); }
+
+/* TABS */
+.tabs-wrap {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden; display: none;
+}
+.tabs-wrap.show { display: block; }
+.tabs-nav {
+  display: flex; overflow-x: auto; border-bottom: 1px solid var(--border);
+  scrollbar-width: none; background: var(--bg2);
+}
+.tabs-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  padding: 14px 18px; font-size: 12px; font-weight: 600; white-space: nowrap;
+  color: var(--muted); background: none; border: none; cursor: pointer;
+  border-bottom: 2px solid transparent; transition: all .2s;
+  letter-spacing: .2px;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-panel { display: none; padding: 28px; }
+.tab-panel.active { display: block; }
+
+/* SECTION TITLES */
+.section-title {
+  font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* GRID LAYOUTS */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+@media(max-width: 900px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+@media(max-width: 600px) { .grid-3 { grid-template-columns: 1fr 1fr; } }
+
+/* CARDS */
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+}
+.card-title {
+  font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .8px; margin-bottom: 12px;
+}
+
+/* METRIC CARDS */
+.metric-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.metric-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.metric-val { font-size: 22px; font-weight: 700; font-family: var(--mono); }
+.metric-sub { font-size: 12px; color: var(--soft); }
+.metric-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;
+  margin-top: 2px;
+}
+.badge-green { background: rgba(34,197,94,.15); color: var(--green); }
+.badge-red { background: rgba(239,68,68,.15); color: var(--red); }
+.badge-amber { background: rgba(245,158,11,.15); color: var(--amber); }
+.badge-blue { background: rgba(56,189,248,.15); color: var(--accent); }
+
+/* TABLE */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  text-align: right; padding: 10px 12px; font-size: 11px; font-weight: 700;
+  color: var(--muted); text-transform: uppercase; letter-spacing: .5px;
+  border-bottom: 1px solid var(--border);
+}
+.data-table th:first-child { text-align: left; }
+.data-table td {
+  text-align: right; padding: 11px 12px; border-bottom: 1px solid rgba(31,45,69,.5);
+  font-family: var(--mono); font-size: 13px;
+}
+.data-table td:first-child { text-align: left; font-family: var(--font); color: var(--soft); font-size: 12px; }
+.data-table tr:hover td { background: var(--bg3); }
+.data-table .pos { color: var(--green); }
+.data-table .neg { color: var(--red); }
+.data-table .hi { color: var(--gold); font-weight: 700; }
+
+/* CHART WRAP */
+.chart-wrap { position: relative; }
+.chart-wrap canvas { max-height: 260px; }
+
+/* VALUATION GAUGE */
+.gauge-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.gauge-label { font-size: 12px; color: var(--muted); }
+.gauge-val { font-size: 28px; font-weight: 800; font-family: var(--mono); }
+.gauge-bar { width: 100%; height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; }
+.gauge-fill { height: 100%; border-radius: 4px; transition: width .8s; }
+
+/* DUPONT FLOW */
+.dupont-flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.dupont-row { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.dupont-box {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 16px; text-align: center; min-width: 110px;
+}
+.dupont-box .val { font-size: 18px; font-weight: 800; font-family: var(--mono); color: var(--accent); }
+.dupont-box .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+.dupont-line { width: 1px; height: 20px; background: var(--border); }
+.dupont-op { font-size: 18px; color: var(--muted); }
+.dupont-result {
+  background: linear-gradient(135deg, rgba(56,189,248,.15), rgba(129,140,248,.15));
+  border: 1px solid var(--accent2); border-radius: 10px;
+  padding: 14px 24px; text-align: center; margin-top: 12px;
+}
+.dupont-result .val { font-size: 32px; font-weight: 900; font-family: var(--mono); color: var(--accent2); }
+.dupont-result .lbl { font-size: 12px; color: var(--soft); margin-top: 2px; }
+
+/* NEWS */
+.news-item {
+  display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border);
+}
+.news-item:last-child { border-bottom: none; }
+.news-date { font-size: 11px; color: var(--muted); white-space: nowrap; min-width: 80px; margin-top: 2px; }
+.news-title { font-size: 14px; color: var(--text); cursor: pointer; }
+.news-title:hover { color: var(--accent); }
+.news-src { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.news-tag {
+  display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;
+  margin-left: 8px; vertical-align: middle;
+}
+
+/* INSIGHTS */
+.insight-card {
+  background: var(--bg3); border-left: 3px solid var(--accent);
+  border-radius: 0 10px 10px 0; padding: 14px 18px; margin-bottom: 12px;
+}
+.insight-card.warn { border-left-color: var(--amber); }
+.insight-card.good { border-left-color: var(--green); }
+.insight-card.bad { border-left-color: var(--red); }
+.insight-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.insight-body { font-size: 12px; color: var(--soft); line-height: 1.6; }
+
+/* LOADING */
+.loading {
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  padding: 60px 20px; text-align: center;
+}
+.spinner {
+  width: 36px; height: 36px; border: 3px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 14px; color: var(--soft); }
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center; padding: 80px 20px;
+  color: var(--muted); display: flex; flex-direction: column; gap: 12px; align-items: center;
+}
+.empty-icon { font-size: 48px; }
+.empty-title { font-size: 18px; font-weight: 600; color: var(--soft); }
+.empty-sub { font-size: 14px; max-width: 380px; line-height: 1.6; }
+
+/* FORECAST TABLE */
+.forecast-row { display: grid; grid-template-columns: 80px repeat(6, 1fr); gap: 0; }
+.forecast-cell {
+  padding: 12px 10px; border-bottom: 1px solid var(--border);
+  text-align: right; font-size: 13px;
+}
+.forecast-cell:first-child { text-align: left; font-weight: 700; color: var(--accent); }
+.forecast-head { background: var(--bg3); font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">Cô Tiên <span>Stock</span></div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Nhập mã CK... (VD: HPG, VCB, FPT)" autocomplete="off">
+      <div class="autocomplete" id="autocomplete"></div>
+    </div>
+    <button class="analyze-btn" onclick="analyzeStock()">Phân Tích</button>
+  </div>
+</header>
+
+<main class="main">
+  <!-- Empty state -->
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">📊</div>
+    <div class="empty-title">Phân tích cơ bản chuyên sâu</div>
+    <div class="empty-sub">Nhập mã cổ phiếu để xem KQKD 5 năm, định giá PE/PB, DCF, DuPont, dự phóng và tin tức 30 ngày</div>
+    <div style="margin-top:8px;font-size:12px;color:var(--muted)">HOSE · HNX · UPCOM — 1500+ mã</div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loadingState" style="display:none">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">Đang tải dữ liệu...</div>
+  </div>
+
+  <!-- Ticker hero -->
+  <div class="ticker-hero" id="tickerHero">
+    <div class="ticker-top">
+      <div class="ticker-name">
+        <h1><span id="heroTicker">HPG</span> — <span id="heroName" style="color:var(--text)">Hòa Phát Group</span></h1>
+        <p id="heroMeta">HOSE · Thép · Vốn hóa: <span id="heroMcap">—</span></p>
+      </div>
+      <div class="ticker-price">
+        <div class="price-val" id="heroPrice">—</div>
+        <div class="price-chg" id="heroPriceChg">—</div>
+      </div>
+    </div>
+    <div class="ticker-stats">
+      <div class="stat-item"><div class="stat-label">PE (TTM)</div><div class="stat-val" id="sPE">—</div></div>
+      <div class="stat-item"><div class="stat-label">PB</div><div class="stat-val" id="sPB">—</div></div>
+      <div class="stat-item"><div class="stat-label">ROE</div><div class="stat-val green" id="sROE">—</div></div>
+      <div class="stat-item"><div class="stat-label">EPS (VNĐ)</div><div class="stat-val" id="sEPS">—</div></div>
+      <div class="stat-item"><div class="stat-label">BVPS (VNĐ)</div><div class="stat-val" id="sBVPS">—</div></div>
+      <div class="stat-item"><div class="stat-label">Beta</div><div class="stat-val amber" id="sBeta">—</div></div>
+      <div class="stat-item"><div class="stat-label">Cổ tức</div><div class="stat-val" id="sDiv">—</div></div>
+      <div class="stat-item"><div class="stat-label">Sàn</div><div class="stat-val" id="sExch">—</div></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-wrap" id="tabsWrap">
+    <nav class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('kqkd',this)">📊 KQKD 5 Năm</button>
+      <button class="tab-btn" onclick="switchTab('valuation',this)">💰 Định Giá PE/PB · 9PP</button>
+      <button class="tab-btn" onclick="switchTab('multiples',this)">📐 Multiples Mở Rộng</button>
+      <button class="tab-btn" onclick="switchTab('dcf',this)">🧮 DCF & Graham</button>
+      <button class="tab-btn" onclick="switchTab('dupont',this)">🔺 DuPont · ROE</button>
+      <button class="tab-btn" onclick="switchTab('insights',this)">💡 Special Insights</button>
+      <button class="tab-btn" onclick="switchTab('forecast',this)">🔮 Dự Phóng 2026-2027</button>
+      <button class="tab-btn" onclick="switchTab('technical',this)">📈 Technical Analysis</button>
+      <button class="tab-btn" onclick="switchTab('news',this)">📰 Tin Tức 30 Ngày</button>
+    </nav>
+
+    <!-- TAB: KQKD -->
+    <div class="tab-panel active" id="tab-kqkd">
+      <div class="section-title">Kết quả kinh doanh 5 năm gần nhất</div>
+      <div class="card" style="margin-bottom:20px; overflow-x:auto">
+        <table class="data-table" id="kqkdTable">
+          <thead><tr id="kqkdHead"></tr></thead>
+          <tbody id="kqkdBody"></tbody>
+        </table>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Doanh thu & LNST (tỷ VNĐ)</div>
+          <div class="chart-wrap"><canvas id="chartRevenue"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">EPS & BVPS (VNĐ/cổ phiếu)</div>
+          <div class="chart-wrap"><canvas id="chartEPS"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: VALUATION -->
+    <div class="tab-panel" id="tab-valuation">
+      <div class="section-title">Định giá theo phương pháp PE/PB & 9 phép thần</div>
+      <div class="grid-4" id="valuationCards" style="margin-bottom:24px"></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Lịch sử PE Band (5 năm)</div>
+          <div class="chart-wrap"><canvas id="chartPEBand"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Định giá 9PP — Khoảng hợp lý</div>
+          <div id="ninePhepTable"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: MULTIPLES -->
+    <div class="tab-panel" id="tab-multiples">
+      <div class="section-title">Multiples mở rộng & so sánh ngành</div>
+      <div class="grid-4" id="multiplesCards" style="margin-bottom:24px"></div>
+      <div class="card" style="overflow-x:auto">
+        <div class="card-title">So sánh với trung vị ngành</div>
+        <table class="data-table" id="multiplesTable"></table>
+      </div>
+    </div>
+
+    <!-- TAB: DCF -->
+    <div class="tab-panel" id="tab-dcf">
+      <div class="section-title">Định giá DCF & Công thức Graham</div>
+      <div class="grid-2" style="margin-bottom:24px" id="dcfCards"></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">DCF Sensitivity (WACC × g)</div>
+          <div id="dcfMatrix"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Graham & Margin of Safety</div>
+          <div id="grahamWrap"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: DUPONT -->
+    <div class="tab-panel" id="tab-dupont">
+      <div class="section-title">Phân tích DuPont 3 & 5 nhân tố</div>
+      <div id="dupontWrap"></div>
+      <div class="card" style="margin-top:20px;overflow-x:auto">
+        <div class="card-title">Xu hướng ROE theo năm</div>
+        <div class="chart-wrap"><canvas id="chartROE"></canvas></div>
+      </div>
+    </div>
+
+    <!-- TAB: INSIGHTS -->
+    <div class="tab-panel" id="tab-insights">
+      <div class="section-title">Special Insights — Điểm mạnh, rủi ro & cơ hội</div>
+      <div id="insightsWrap"></div>
+    </div>
+
+    <!-- TAB: FORECAST -->
+    <div class="tab-panel" id="tab-forecast">
+      <div class="section-title">Dự phóng 2026–2027 (Base / Bull / Bear)</div>
+      <div id="forecastWrap"></div>
+      <div class="card" style="margin-top:20px">
+        <div class="card-title">Biểu đồ dự phóng doanh thu & LNST</div>
+        <div class="chart-wrap"><canvas id="chartForecast"></canvas></div>
+      </div>
+    </div>
+
+    <!-- TAB: TECHNICAL -->
+    <div class="tab-panel" id="tab-technical">
+      <div class="section-title">Technical Analysis — Xu hướng & tín hiệu</div>
+      <div class="grid-4" id="taCards" style="margin-bottom:24px"></div>
+      <div class="card">
+        <div class="card-title">Giá đóng cửa + MA20/MA50/MA200 (6 tháng)</div>
+        <div class="chart-wrap" style="height:280px"><canvas id="chartTA"></canvas></div>
+      </div>
+      <div class="grid-2" style="margin-top:20px">
+        <div class="card" id="supportResist">
+          <div class="card-title">Hỗ trợ & Kháng cự</div>
+        </div>
+        <div class="card" id="taSignals">
+          <div class="card-title">Tín hiệu kỹ thuật</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: NEWS -->
+    <div class="tab-panel" id="tab-news">
+      <div class="section-title">Tin tức 30 ngày gần nhất</div>
+      <div id="newsWrap"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ===================== MOCK DATA (HPG example) =====================
+const MOCK = {
+  HPG: {
+    ticker: 'HPG', name: 'Tập Đoàn Hòa Phát', sector: 'Thép', exchange: 'HOSE',
+    price: 23600, priceChg: +350, priceChgPct: +1.51,
+    mcap: '199,254 tỷ', pe: 12.8, pb: 1.54, roe: 12.1, eps: 1843, bvps: 15324, beta: 1.32, div: '10% cổ phiếu',
+    years: [2021,2022,2023,2024,2025],
+    revenue: [150865,142771,118953,140191,158332],
+    lnst: [34521,8444,6835,12021,15515],
+    eps_arr: [5943,1319,1068,1843,2018],
+    bvps_arr: [12800,13200,13800,15000,15324],
+    vcsh: [103000,98000,109000,130000,145000],
+    shares: [5.81,6.40,6.40,6.40,7.69],
+    cfo: [42000,18000,25000,28000,35000],
+    roe_arr: [33.5,8.6,6.3,9.2,12.1],
+    roa_arr: [20.9,5.2,3.8,5.4,6.5],
+    ros_arr: [22.9,5.9,5.7,8.6,9.8],
+    leverage_arr: [1.60,1.65,1.63,1.70,1.85],
+    pe_hist: [8.2,23.1,28.3,13.6,12.8],
+    pb_hist: [2.41,1.48,1.81,1.67,1.54],
+    evebitda: [9.2,18.4,20.1,11.3,10.2],
+    ps_arr: [1.88,1.39,1.59,1.43,1.26],
+    pcf: [4.7,7.8,4.8,5.0,5.7],
+    wacc: 11.5, g_term: 3.0,
+    dcf_val: 28400, graham_val: 24700, pb_val: 23600, pe_val: 27200,
+    ta: { ma20:23200, ma50:22800, ma200:21500, rsi:58, macd:'Tích cực', vol_ratio:1.24, trend:'Tăng' },
+    support: [22000,21500,20000], resist: [25000,26500,28000],
+    news: [
+      {date:'15/07/2026',title:'HPG ghi nhận sản lượng thép tháng 6 đạt kỷ lục 900.000 tấn',src:'CafeF',tag:'Kết quả',tagColor:'green'},
+      {date:'12/07/2026',title:'Hòa Phát khởi công giai đoạn 2 dự án Dung Quất — vốn đầu tư 85.000 tỷ',src:'VnExpress',tag:'Đầu tư',tagColor:'blue'},
+      {date:'10/07/2026',title:'Khối ngoại mua ròng HPG tuần qua: +48 tỷ đồng',src:'VDSC',tag:'Khối ngoại',tagColor:'amber'},
+      {date:'08/07/2026',title:'Giá thép HRC thế giới hồi phục, thuận lợi cho HPG H2/2026',src:'SSI Research',tag:'Phân tích',tagColor:'blue'},
+      {date:'05/07/2026',title:'HPG trả cổ tức 10% bằng cổ phiếu — ngày chốt 20/07/2026',src:'HNX',tag:'Cổ tức',tagColor:'green'},
+      {date:'01/07/2026',title:'LNST Q2/2026 ước đạt 4.100 tỷ, tăng 18% so với cùng kỳ',src:'Mirae Asset',tag:'Kết quả',tagColor:'green'},
+      {date:'28/06/2026',title:'Rủi ro thuế chống bán phá giá thép VN vào EU — tác động đến HPG',src:'VCSC',tag:'Rủi ro',tagColor:'red'},
+      {date:'25/06/2026',title:'HPG đặt kế hoạch doanh thu 2026: 185.000 tỷ (+17%), LNST 18.000 tỷ (+16%)',src:'Báo cáo thường niên',tag:'Kế hoạch',tagColor:'blue'},
+    ],
+    insights: [
+      {type:'good',title:'🏭 Năng lực sản xuất vượt trội',body:'HPG là nhà sản xuất thép lớn nhất Đông Nam Á với công suất 14 triệu tấn/năm sau khi Dung Quất 2 hoàn thành. Lợi thế quy mô giúp chi phí thấp hơn 15-20% so với đối thủ nội địa.'},
+      {type:'good',title:'🔄 Chuỗi giá trị khép kín',body:'Từ quặng sắt → luyện thép → cán nguội → gia công — mô hình tích hợp dọc giúp HPG kiểm soát biên lợi nhuận và giảm thiểu rủi ro giá nguyên liệu đầu vào.'},
+      {type:'warn',title:'⚠️ Rủi ro chu kỳ ngành thép',body:'Giá thép thế giới biến động mạnh theo chu kỳ kinh tế Trung Quốc. ROE năm 2022-2023 giảm từ 33.5% xuống 6.3% cho thấy mức độ nhạy cảm cao của LNST với giá bán.'},
+      {type:'warn',title:'🌍 Áp lực cạnh tranh từ thép Trung Quốc',body:'Thép Trung Quốc giá rẻ tiếp tục xâm nhập thị trường Đông Nam Á tạo áp lực lên biên lợi nhuận. Cần theo dõi diễn biến thuế chống bán phá giá tại các thị trường xuất khẩu.'},
+      {type:'good',title:'💰 Dòng tiền mạnh, nợ được kiểm soát',body:'CFO năm 2025 đạt ~35.000 tỷ, D/E ~ 0.66x ở mức an toàn. Cổ tức cổ phiếu 10% liên tục nhiều năm thể hiện cam kết trả thưởng cổ đông.'},
+      {type:'bad',title:'📉 Định giá chưa rẻ ở vùng giá hiện tại',body:'Với PE 12.8x, HPG đang giao dịch gần PE trung bình 5 năm (17.2x). Tuy nhiên so với PE ngành thép toàn cầu ~8x, định giá vẫn có premium. Cần thêm xúc tác tăng trưởng để breakout vùng 25.000đ.'},
+    ]
+  }
+};
+
+// ===================== TICKER LIST =====================
+const TICKERS = [
+  {t:'HPG',n:'Tập Đoàn Hòa Phát',e:'HOSE'},{t:'VCB',n:'Ngân hàng Vietcombank',e:'HOSE'},
+  {t:'FPT',n:'Tập Đoàn FPT',e:'HOSE'},{t:'VNM',n:'Vinamilk',e:'HOSE'},
+  {t:'MWG',n:'Thế Giới Di Động',e:'HOSE'},{t:'TCB',n:'Techcombank',e:'HOSE'},
+  {t:'VIC',n:'Tập Đoàn Vingroup',e:'HOSE'},{t:'VHM',n:'Vinhomes',e:'HOSE'},
+  {t:'BID',n:'BIDV',e:'HOSE'},{t:'VPB',n:'VPBank',e:'HOSE'},
+  {t:'ACB',n:'ACB',e:'HOSE'},{t:'MSN',n:'Masan Group',e:'HOSE'},
+  {t:'GAS',n:'PV Gas',e:'HOSE'},{t:'SAB',n:'Sabeco',e:'HOSE'},
+  {t:'CTG',n:'VietinBank',e:'HOSE'},{t:'STB',n:'Sacombank',e:'HOSE'},
+  {t:'MBB',n:'MB Bank',e:'HOSE'},{t:'HDB',n:'HDBank',e:'HOSE'},
+  {t:'PLX',n:'Petrolimex',e:'HOSE'},{t:'POW',n:'PV Power',e:'HOSE'},
+  {t:'REE',n:'Cơ Điện Lạnh REE',e:'HOSE'},{t:'DGC',n:'Hóa chất Đức Giang',e:'HOSE'},
+  {t:'NLG',n:'Nam Long Group',e:'HOSE'},{t:'KDH',n:'Khang Điền',e:'HOSE'},
+  {t:'DPM',n:'Đạm Phú Mỹ',e:'HOSE'},{t:'PNJ',n:'PNJ',e:'HOSE'},
+];
+
+let currentTicker = null, charts = {};
+
+// Search autocomplete
+const searchInput = document.getElementById('searchInput');
+const acBox = document.getElementById('autocomplete');
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toUpperCase();
+  if (!q) { acBox.classList.remove('show'); return; }
+  const results = TICKERS.filter(x => x.t.startsWith(q) || x.n.toUpperCase().includes(q)).slice(0,8);
+  if (!results.length) { acBox.classList.remove('show'); return; }
+  acBox.innerHTML = results.map(r =>
+    `<div class="ac-item" onclick="selectTicker('${r.t}')">
+      <span class="ac-ticker">${r.t}</span>
+      <span class="ac-name">${r.n}</span>
+      <span class="ac-exchange">${r.e}</span>
+    </div>`
+  ).join('');
+  acBox.classList.add('show');
+});
+
+document.addEventListener('click', e => { if (!e.target.closest('.search-wrap')) acBox.classList.remove('show'); });
+searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') analyzeStock(); });
+
+function selectTicker(t) {
+  searchInput.value = t;
+  acBox.classList.remove('show');
+  analyzeStock();
+}
+
+function analyzeStock() {
+  const q = searchInput.value.trim().toUpperCase();
+  if (!q) return;
+  loadData(q);
+}
+
+function loadData(ticker) {
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('loadingState').style.display = 'flex';
+  document.getElementById('tickerHero').classList.remove('show');
+  document.getElementById('tabsWrap').classList.remove('show');
+
+  const messages = ['Đang kết nối vnstock API...','Đang tải BCTC 5 năm...','Đang tính toán định giá...','Đang tổng hợp insights...'];
+  let mi = 0;
+  const interval = setInterval(() => {
+    document.getElementById('loadingText').textContent = messages[mi % messages.length];
+    mi++;
+  }, 600);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    document.getElementById('loadingState').style.display = 'none';
+    const data = MOCK[ticker] || generateMock(ticker);
+    currentTicker = data;
+    renderAll(data);
+  }, 2400);
+}
+
+function generateMock(ticker) {
+  // Generate plausible random data for any ticker
+  const base = MOCK.HPG;
+  return { ...base, ticker, name: ticker + ' Corp', exchange: 'HOSE',
+    price: Math.round(15000 + Math.random()*50000),
+    priceChg: Math.round((Math.random()-.4)*800),
+    priceChgPct: +((Math.random()-.4)*3.5).toFixed(2) };
+}
+
+function renderAll(d) {
+  renderHero(d);
+  renderKQKD(d);
+  renderValuation(d);
+  renderMultiples(d);
+  renderDCF(d);
+  renderDuPont(d);
+  renderInsights(d);
+  renderForecast(d);
+  renderTA(d);
+  renderNews(d);
+}
+
+// ===================== HERO =====================
+function renderHero(d) {
+  document.getElementById('heroTicker').textContent = d.ticker;
+  document.getElementById('heroName').textContent = d.name;
+  document.getElementById('heroMeta').innerHTML = `${d.exchange} · ${d.sector} · Vốn hóa: <span>${d.mcap}</span>`;
+  document.getElementById('heroPrice').textContent = fmt(d.price) + 'đ';
+  const chgEl = document.getElementById('heroPriceChg');
+  const pos = d.priceChgPct >= 0;
+  chgEl.textContent = `${pos?'+':''}${fmt(d.priceChg)}đ (${pos?'+':''}${d.priceChgPct}%)`;
+  chgEl.className = 'price-chg ' + (pos ? 'pos' : 'neg');
+  document.getElementById('sPE').textContent = d.pe + 'x';
+  document.getElementById('sPB').textContent = d.pb + 'x';
+  document.getElementById('sROE').textContent = d.roe + '%';
+  document.getElementById('sEPS').textContent = fmt(d.eps);
+  document.getElementById('sBVPS').textContent = fmt(d.bvps);
+  document.getElementById('sBeta').textContent = d.beta;
+  document.getElementById('sDiv').textContent = d.div;
+  document.getElementById('sExch').textContent = d.exchange;
+  document.getElementById('tickerHero').classList.add('show');
+  document.getElementById('tabsWrap').classList.add('show');
+}
+
+// ===================== KQKD =====================
+function renderKQKD(d) {
+  const head = document.getElementById('kqkdHead');
+  const body = document.getElementById('kqkdBody');
+  head.innerHTML = `<th>Chỉ tiêu</th>${d.years.map(y=>`<th>${y}</th>`).join('')}`;
+
+  const rows = [
+    {label:'Doanh thu (tỷ)', vals: d.revenue, fmt: v=>fmtB(v), pct:true},
+    {label:'LNST (tỷ)', vals: d.lnst, fmt: v=>fmtB(v), pct:true},
+    {label:'Biên LNST (%)', vals: d.lnst.map((v,i)=>+(v/d.revenue[i]*100).toFixed(1)), fmt:v=>v+'%', pct:false, cls:'soft'},
+    {label:'EPS (VNĐ)', vals: d.eps_arr, fmt: v=>fmt(v), pct:true},
+    {label:'BVPS (VNĐ)', vals: d.bvps_arr, fmt: v=>fmt(v), pct:true},
+    {label:'VCSH (tỷ)', vals: d.vcsh, fmt: v=>fmtB(v), pct:true},
+    {label:'CFO (tỷ)', vals: d.cfo, fmt: v=>fmtB(v), pct:false},
+    {label:'CP lưu hành (tỷ)', vals: d.shares, fmt: v=>v.toFixed(2), pct:false, cls:'soft'},
+  ];
+
+  body.innerHTML = rows.map(r => {
+    const cells = r.vals.map((v,i) => {
+      let cls = '';
+      if (r.pct && i > 0) {
+        const chg = v - r.vals[i-1];
+        cls = chg >= 0 ? 'pos' : 'neg';
+      }
+      const isMax = v === Math.max(...r.vals);
+      return `<td class="${cls}${isMax?' hi':''}">${r.fmt(v)}</td>`;
+    }).join('');
+    return `<tr><td>${r.label}</td>${cells}</tr>`;
+  }).join('');
+
+  destroyChart('chartRevenue');
+  charts.chartRevenue = new Chart(document.getElementById('chartRevenue'), {
+    type: 'bar',
+    data: {
+      labels: d.years,
+      datasets: [
+        {label:'Doanh thu',data:d.revenue,backgroundColor:'rgba(56,189,248,.25)',borderColor:'#38bdf8',borderWidth:2,borderRadius:4},
+        {label:'LNST',data:d.lnst,backgroundColor:'rgba(34,197,94,.25)',borderColor:'#22c55e',borderWidth:2,borderRadius:4}
+      ]
+    },
+    options: chartOpts()
+  });
+
+  destroyChart('chartEPS');
+  charts.chartEPS = new Chart(document.getElementById('chartEPS'), {
+    type: 'line',
+    data: {
+      labels: d.years,
+      datasets: [
+        {label:'EPS',data:d.eps_arr,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.1)',tension:.4,fill:true,pointRadius:5},
+        {label:'BVPS',data:d.bvps_arr,borderColor:'#818cf8',backgroundColor:'rgba(129,140,248,.1)',tension:.4,fill:false,pointRadius:5}
+      ]
+    },
+    options: chartOpts()
+  });
+}
+
+// ===================== VALUATION =====================
+function renderValuation(d) {
+  const targets = [
+    {label:'PE Định Giá', val: fmt(d.pe_val)+'đ', note:'EPS × PE trung bình 5Y', color:'accent'},
+    {label:'PB Định Giá', val: fmt(d.pb_val)+'đ', note:'BVPS × PB trung bình', color:'accent2'},
+    {label:'Giá Hiện Tại', val: fmt(d.price)+'đ', note:'Giá đóng cửa gần nhất', color:'green'},
+    {label:'Upside PE', val: pct(d.pe_val, d.price), note:'Tiềm năng tăng', color: d.pe_val>d.price?'green':'red'},
+  ];
+  document.getElementById('valuationCards').innerHTML = targets.map(t=>
+    `<div class="metric-card">
+      <div class="metric-label">${t.label}</div>
+      <div class="metric-val" style="color:var(--${t.color})">${t.val}</div>
+      <div class="metric-sub">${t.note}</div>
+    </div>`
+  ).join('');
+
+  destroyChart('chartPEBand');
+  charts.chartPEBand = new Chart(document.getElementById('chartPEBand'), {
+    type: 'line',
+    data: {
+      labels: d.years,
+      datasets: [
+        {label:'PE thực tế',data:d.pe_hist,borderColor:'#38bdf8',tension:.4,pointRadius:5},
+        {label:'PE trung bình',data:Array(5).fill(+(d.pe_hist.reduce((a,b)=>a+b,0)/5).toFixed(1)),borderColor:'#f59e0b',borderDash:[6,3],borderWidth:1.5,pointRadius:0},
+      ]
+    },
+    options: chartOpts()
+  });
+
+  const pe_avg = +(d.pe_hist.reduce((a,b)=>a+b,0)/5).toFixed(1);
+  const pp9 = [
+    ['PE trung bình 5Y', fmt(Math.round(d.eps_arr[4]*pe_avg))+'đ'],
+    ['PE -1SD', fmt(Math.round(d.eps_arr[4]*(pe_avg-2)))+'đ'],
+    ['PE +1SD', fmt(Math.round(d.eps_arr[4]*(pe_avg+2)))+'đ'],
+    ['PB trung bình 5Y', fmt(Math.round(d.bvps_arr[4]*(d.pb_hist.reduce((a,b)=>a+b,0)/5)))+'đ'],
+    ['PB min 5Y', fmt(Math.round(d.bvps_arr[4]*Math.min(...d.pb_hist)))+'đ'],
+    ['PB max 5Y', fmt(Math.round(d.bvps_arr[4]*Math.max(...d.pb_hist)))+'đ'],
+    ['PE Ngành TB', fmt(Math.round(d.eps_arr[4]*14))+'đ'],
+    ['Graham Value', fmt(d.graham_val)+'đ'],
+    ['DCF Cơ sở', fmt(d.dcf_val)+'đ'],
+  ];
+  document.getElementById('ninePhepTable').innerHTML =
+    `<table class="data-table" style="margin-top:0">
+      <thead><tr><th style="text-align:left">Phương pháp</th><th>Giá mục tiêu</th></tr></thead>
+      <tbody>${pp9.map(([m,v])=>`<tr><td>${m}</td><td class="${parseInt(v.replace(/,/g,''))>d.price?'pos':'neg'}">${v}</td></tr>`).join('')}</tbody>
+    </table>`;
+}
+
+// ===================== MULTIPLES =====================
+function renderMultiples(d) {
+  const mult = [
+    {label:'EV/EBITDA', val:d.evebitda[4]+'x', badge:'Ngành: 8-12x', ok: d.evebitda[4]<12},
+    {label:'P/S', val:d.ps_arr[4]+'x', badge:'Ngành: 1-2x', ok: d.ps_arr[4]<2},
+    {label:'P/CF', val:d.pcf[4]+'x', badge:'Ngành: 4-7x', ok: d.pcf[4]<7},
+    {label:'EV/Sales', val: (d.evebitda[4]*0.12).toFixed(1)+'x', badge:'TB ngành', ok:true},
+  ];
+  document.getElementById('multiplesCards').innerHTML = mult.map(m=>
+    `<div class="metric-card">
+      <div class="metric-label">${m.label}</div>
+      <div class="metric-val" style="color:var(--${m.ok?'green':'amber'})">${m.val}</div>
+      <span class="metric-badge ${m.ok?'badge-green':'badge-amber'}">${m.badge}</span>
+    </div>`
+  ).join('');
+
+  const metrics = ['PE','PB','EV/EBITDA','P/S','P/CF'];
+  const company = [d.pe, d.pb, d.evebitda[4], d.ps_arr[4], d.pcf[4]];
+  const industry = [14, 1.8, 10.5, 1.5, 5.5];
+  document.getElementById('multiplesTable').innerHTML =
+    `<thead><tr><th>Chỉ số</th><th>${d.ticker}</th><th>Ngành TB</th><th>Đánh giá</th></tr></thead>
+    <tbody>${metrics.map((m,i)=>{
+      const cheap = company[i] <= industry[i];
+      return `<tr><td>${m}</td><td class="${cheap?'pos':'neg'}">${company[i]}x</td><td>${industry[i]}x</td>
+        <td><span class="metric-badge ${cheap?'badge-green':'badge-amber'}">${cheap?'Rẻ hơn ngành':'Đắt hơn ngành'}</span></td></tr>`;
+    }).join('')}</tbody>`;
+}
+
+// ===================== DCF =====================
+function renderDCF(d) {
+  document.getElementById('dcfCards').innerHTML =
+    `<div class="metric-card">
+      <div class="metric-label">DCF Intrinsic Value</div>
+      <div class="metric-val" style="color:var(--accent)">${fmt(d.dcf_val)}đ</div>
+      <div class="metric-sub">WACC: ${d.wacc}% · g: ${d.g_term}%</div>
+      <span class="metric-badge ${d.dcf_val>d.price?'badge-green':'badge-red'}">${d.dcf_val>d.price?'Undervalued':'Overvalued'} ${pct(d.dcf_val,d.price)}</span>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Graham Number</div>
+      <div class="metric-val" style="color:var(--accent2)">${fmt(d.graham_val)}đ</div>
+      <div class="metric-sub">√(22.5 × EPS × BVPS)</div>
+      <span class="metric-badge ${d.graham_val>d.price?'badge-green':'badge-red'}">${d.graham_val>d.price?'Biên an toàn '+pct(d.graham_val,d.price):'Trên Graham'}</span>
+    </div>`;
+
+  const waccs = [9,10,11,11.5,12,13];
+  const gs = [1,2,3,4,5];
+  document.getElementById('dcfMatrix').innerHTML =
+    `<div style="overflow-x:auto">
+    <table class="data-table" style="font-size:11px">
+      <thead><tr><th>WACC↓ g→</th>${gs.map(g=>`<th>g=${g}%</th>`).join('')}</tr></thead>
+      <tbody>${waccs.map(w=>`<tr><td>WACC=${w}%</td>${gs.map(g=>{
+        const v = Math.round(d.dcf_val * (11.5/w) * (1+(g-3)*0.04));
+        const cls = v > d.price*1.2 ? 'pos' : v < d.price*0.9 ? 'neg' : '';
+        return `<td class="${cls}">${fmtB(v)}`;
+      }).join('')}</tr>`).join('')}</tbody>
+    </table></div>`;
+
+  const margin = ((d.graham_val - d.price)/d.graham_val*100).toFixed(1);
+  document.getElementById('grahamWrap').innerHTML =
+    `<div style="display:flex;flex-direction:column;gap:14px;padding-top:8px">
+      ${[['Graham Number',fmt(d.graham_val)+'đ','accent2'],['Giá hiện tại',fmt(d.price)+'đ','text'],
+         ['Margin of Safety',Math.max(0,margin)+'%',margin>0?'green':'red'],
+         ['EPS TTM',fmt(d.eps_arr[4])+'đ','soft'],['BVPS',fmt(d.bvps_arr[4])+'đ','soft']
+      ].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:10px">
+        <span style="font-size:13px;color:var(--muted)">${l}</span>
+        <span style="font-size:15px;font-weight:700;color:var(--${c});font-family:var(--mono)">${v}</span>
+      </div>`).join('')}
+    </div>`;
+}
+
+// ===================== DUPONT =====================
+function renderDuPont(d) {
+  const ros = d.ros_arr[4], at = (d.revenue[4]/((d.vcsh[4]+d.vcsh[3])/2*d.leverage_arr[4])).toFixed(2), lev = d.leverage_arr[4];
+  const roe = (ros/100 * parseFloat(at) * lev * 100).toFixed(1);
+  document.getElementById('dupontWrap').innerHTML =
+    `<div class="card">
+      <div class="card-title">DuPont 3 nhân tố — ${d.years[4]}</div>
+      <div class="dupont-flow" style="padding:16px 0">
+        <div class="dupont-row" style="gap:24px">
+          <div class="dupont-box"><div class="val">${d.ros_arr[4]}%</div><div class="lbl">ROS (Biên LN)</div></div>
+          <div class="dupont-op">×</div>
+          <div class="dupont-box"><div class="val">${at}</div><div class="lbl">Vòng quay TS</div></div>
+          <div class="dupont-op">×</div>
+          <div class="dupont-box"><div class="val">${lev}</div><div class="lbl">Đòn bẩy TC</div></div>
+        </div>
+        <div class="dupont-line"></div>
+        <div class="dupont-result"><div class="val">${roe}%</div><div class="lbl">ROE</div></div>
+      </div>
+    </div>`;
+
+  destroyChart('chartROE');
+  charts.chartROE = new Chart(document.getElementById('chartROE'), {
+    type: 'line',
+    data: {
+      labels: d.years,
+      datasets: [
+        {label:'ROE (%)',data:d.roe_arr,borderColor:'#818cf8',backgroundColor:'rgba(129,140,248,.15)',tension:.4,fill:true,pointRadius:5},
+        {label:'ROA (%)',data:d.roa_arr,borderColor:'#38bdf8',tension:.4,fill:false,borderDash:[],pointRadius:4},
+        {label:'ROS (%)',data:d.ros_arr,borderColor:'#22c55e',tension:.4,fill:false,borderDash:[4,3],pointRadius:4},
+      ]
+    },
+    options: chartOpts()
+  });
+}
+
+// ===================== INSIGHTS =====================
+function renderInsights(d) {
+  document.getElementById('insightsWrap').innerHTML = d.insights.map(i=>
+    `<div class="insight-card ${i.type}">
+      <div class="insight-title">${i.title}</div>
+      <div class="insight-body">${i.body}</div>
+    </div>`
+  ).join('');
+}
+
+// ===================== FORECAST =====================
+function renderForecast(d) {
+  const y = [2025, 2026, 2027];
+  const rev = { base:[158332,185000,205000], bull:[158332,198000,225000], bear:[158332,168000,180000] };
+  const lnst = { base:[15515,18000,21000], bull:[15515,21000,26000], bear:[15515,13000,14500] };
+
+  document.getElementById('forecastWrap').innerHTML =
+    `<div style="overflow-x:auto">
+    <div class="forecast-row">
+      <div class="forecast-cell forecast-head"></div>
+      ${['Doanh thu Base','Doanh thu Bull','Doanh thu Bear','LNST Base','LNST Bull','LNST Bear'].map(h=>
+        `<div class="forecast-cell forecast-head">${h}</div>`).join('')}
+    </div>
+    ${y.map((yr,i)=>
+      `<div class="forecast-row ${i===0?'':''}" style="${i===0?'opacity:.6':''}">
+        <div class="forecast-cell" style="text-align:left;font-weight:700;color:var(--accent)">${yr}${i===0?' (TH)':''}</div>
+        <div class="forecast-cell">${fmtB(rev.base[i])}</div>
+        <div class="forecast-cell pos">${fmtB(rev.bull[i])}</div>
+        <div class="forecast-cell neg">${fmtB(rev.bear[i])}</div>
+        <div class="forecast-cell">${fmtB(lnst.base[i])}</div>
+        <div class="forecast-cell pos">${fmtB(lnst.bull[i])}</div>
+        <div class="forecast-cell neg">${fmtB(lnst.bear[i])}</div>
+      </div>`
+    ).join('')}
+    </div>`;
+
+  destroyChart('chartForecast');
+  charts.chartForecast = new Chart(document.getElementById('chartForecast'), {
+    type: 'bar',
+    data: {
+      labels: ['2024 TH','2025 TH','2026F Base','2026F Bull','2027F Base','2027F Bull'],
+      datasets: [
+        {label:'Doanh thu',data:[140191,158332,185000,198000,205000,225000],backgroundColor:'rgba(56,189,248,.3)',borderColor:'#38bdf8',borderWidth:2,borderRadius:4},
+        {label:'LNST',data:[12021,15515,18000,21000,21000,26000],backgroundColor:'rgba(34,197,94,.3)',borderColor:'#22c55e',borderWidth:2,borderRadius:4}
+      ]
+    },
+    options: chartOpts()
+  });
+}
+
+// ===================== TECHNICAL =====================
+function renderTA(d) {
+  const ta = d.ta;
+  const trendPos = ta.trend === 'Tăng';
+  document.getElementById('taCards').innerHTML = [
+    {label:'RSI (14)', val: ta.rsi, sub: ta.rsi>70?'Overbought':ta.rsi<30?'Oversold':'Trung tính', ok: ta.rsi<70&&ta.rsi>30},
+    {label:'MACD Signal', val: ta.macd, sub:'vs Signal line', ok: ta.macd==='Tích cực'},
+    {label:'Xu hướng', val: ta.trend, sub:'Theo MA50', ok: trendPos},
+    {label:'Vol Ratio', val: ta.vol_ratio+'x', sub:'So TB 20 ngày', ok: ta.vol_ratio>1},
+  ].map(t=>
+    `<div class="metric-card">
+      <div class="metric-label">${t.label}</div>
+      <div class="metric-val" style="color:var(--${t.ok?'green':'amber'})">${t.val}</div>
+      <div class="metric-sub">${t.sub}</div>
+    </div>`
+  ).join('');
+
+  // Simulated price data
+  const basePrice = d.price;
+  const labels = Array.from({length:120},(_,i)=>{
+    const dt = new Date(); dt.setDate(dt.getDate()-120+i);
+    return `${dt.getDate()}/${dt.getMonth()+1}`;
+  });
+  const prices = Array.from({length:120},(_,i)=>
+    Math.round(basePrice * (0.88 + 0.12*Math.sin(i*0.08) + 0.05*(Math.random()-.4) + i*0.001))
+  );
+  const ma20 = prices.map((_,i)=>i<19?null:+(prices.slice(i-19,i+1).reduce((a,b)=>a+b,0)/20).toFixed(0));
+  const ma50 = prices.map((_,i)=>i<49?null:+(prices.slice(i-49,i+1).reduce((a,b)=>a+b,0)/50).toFixed(0));
+
+  destroyChart('chartTA');
+  charts.chartTA = new Chart(document.getElementById('chartTA'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {label:'Giá',data:prices,borderColor:'#e2e8f0',borderWidth:1.5,pointRadius:0,tension:0.2},
+        {label:'MA20',data:ma20,borderColor:'#f59e0b',borderWidth:1.5,pointRadius:0,tension:.4,borderDash:[]},
+        {label:'MA50',data:ma50,borderColor:'#818cf8',borderWidth:1.5,pointRadius:0,tension:.4,borderDash:[4,3]},
+      ]
+    },
+    options: {...chartOpts(), scales: {...chartOpts().scales, x:{...chartOpts().scales.x, ticks:{...chartOpts().scales.x.ticks, maxTicksLimit:8}}}}
+  });
+
+  document.getElementById('supportResist').innerHTML +=
+    `<div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+      ${d.resist.map(r=>`<div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(239,68,68,.08);border-radius:6px;border-left:3px solid var(--red)">
+        <span style="font-size:12px;color:var(--muted)">Kháng cự</span><span style="font-weight:700;font-family:var(--mono);color:var(--red)">${fmt(r)}đ</span></div>`).join('')}
+      ${d.support.map(s=>`<div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(34,197,94,.08);border-radius:6px;border-left:3px solid var(--green)">
+        <span style="font-size:12px;color:var(--muted)">Hỗ trợ</span><span style="font-weight:700;font-family:var(--mono);color:var(--green)">${fmt(s)}đ</span></div>`).join('')}
+    </div>`;
+
+  document.getElementById('taSignals').innerHTML +=
+    `<div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+      ${[
+        ['MA20 vs MA50', prices[119]>ma50[119]?'Tích cực (Golden Cross)':'Tiêu cực', prices[119]>ma50[119]?'green':'red'],
+        ['RSI Signal', ta.rsi+' — '+(ta.rsi>70?'Bán':'ta.rsi<30?Mua':'Giữ'), ta.rsi<70&&ta.rsi>30?'amber':'green'],
+        ['MACD', ta.macd, ta.macd==='Tích cực'?'green':'red'],
+        ['Volume', ta.vol_ratio+'x TB 20 ngày', ta.vol_ratio>1.2?'green':'amber'],
+        ['Trend', ta.trend+' (MA50)', trendPos?'green':'red'],
+      ].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:8px">
+        <span style="font-size:12px;color:var(--muted)">${l}</span>
+        <span style="font-size:12px;font-weight:700;color:var(--${c})">${v}</span>
+      </div>`).join('')}
+    </div>`;
+}
+
+// ===================== NEWS =====================
+function renderNews(d) {
+  const tagColors = {green:'badge-green',blue:'badge-blue',amber:'badge-amber',red:'badge-red'};
+  document.getElementById('newsWrap').innerHTML = d.news.map(n=>
+    `<div class="news-item">
+      <div class="news-date">${n.date}</div>
+      <div style="flex:1">
+        <div class="news-title">${n.title}
+          <span class="news-tag ${tagColors[n.tagColor]||'badge-blue'}">${n.tag}</span>
+        </div>
+        <div class="news-src">${n.src}</div>
+      </div>
+    </div>`
+  ).join('');
+}
+
+// ===================== UTILS =====================
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function fmt(n) { return Number(n).toLocaleString('vi-VN'); }
+function fmtB(n) { return (n/1000).toFixed(1)+'K'; }
+function pct(a,b) { const v=((a-b)/b*100).toFixed(1); return (v>0?'+':'')+v+'%'; }
+
+function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function chartOpts() {
+  return {
+    responsive: true, maintainAspectRatio: true,
+    plugins: { legend: { labels: { color: '#94a3b8', font:{size:12} } }, tooltip: { backgroundColor:'#1a2236', borderColor:'#1f2d45', borderWidth:1 } },
+    scales: {
+      x: { ticks: { color:'#64748b', font:{size:11} }, grid: { color:'rgba(31,45,69,.5)' } },
+      y: { ticks: { color:'#64748b', font:{size:11} }, grid: { color:'rgba(31,45,69,.5)' } }
+    }
+  };
+}
+</script>
+</body>
+</html>
